@@ -3,32 +3,28 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
-use App\Models\Pokemon;
 
 class PokemonSeeder extends Seeder
 {
     public function run()
     {
-        // API-Aufruf für die ersten 150 Pokémon
-        $response = Http::get('https://pokeapi.co/api/v2/pokemon?limit=150');
+        // Die ersten 151 Pokémon abrufen
+        for ($i = 1; $i <= 1025; $i++) {
+            // API-Anfrage an die PokeAPI für jedes Pokémon
+            $pokemon = Http::get("https://pokeapi.co/api/v2/pokemon/{$i}")->json();
 
-        if ($response->successful()) {
-            $pokemons = $response->json()['results'];
-
-            foreach ($pokemons as $pokemonData) {
-                // Detaildaten für jedes Pokémon holen
-                $pokemonDetail = Http::get($pokemonData['url'])->json();
-
-                Pokemon::create([
-                    'name' => $pokemonDetail['name'],
-                    'height' => $pokemonDetail['height'],
-                    'weight' => $pokemonDetail['weight'],
-                    'types' => json_encode(array_column($pokemonDetail['types'], 'type')),
-                    'sprite' => $pokemonDetail['sprites']['front_default'],
-                ]);
-            }
+            // Daten in die Datenbank einfügen
+            DB::table('pokemons')->insert([
+                'name' => $pokemon['name'],
+                'hp' => rand(30, 100),
+                'attack' => rand(40, 100),
+                'defense' => rand(30, 100),
+                'speed' => rand(50, 150),
+            ]);
         }
+
+        echo "Alle 1025 Pokémons wurden erfolgreich hinzugefügt.\n";
     }
 }
-
